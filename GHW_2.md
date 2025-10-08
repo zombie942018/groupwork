@@ -14,7 +14,6 @@ dateFormat  YYYY-MM-DD
 title 專題任務時程表
 excludes weekdays 
 
-section A分項
 研擬計畫   :         des1, 2025-10-01,2025-10-10
 任務分配   :         des2, after des1, 2d
 需求分析   :         des3, after des2, 10d
