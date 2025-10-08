@@ -4,7 +4,7 @@
 | :---: | :---: | :---: |
 | C112118142 | 游益哲 | 需求分析、GitHub撰寫 |
 | C112118139 | 林丙弘 | 文獻探討、系統維護 |
-| C112118148 | 郭建佑 | 數據庫收集 |
+| C112118148 | 郭建佑 | 數據庫收集、GitHub修正 |
 | C112118129 | 張詠竣 | AI Agent建置 |
 
 專題甘特圖：
@@ -20,7 +20,7 @@ excludes weekdays
 蒐集文獻、資料   :         des4, after des2, 10d
 n8n需求樣板蒐集   :         des5, after des3, 2d
 AI Agent試做   :         des6, after des4 des5, 14d
-AI Agent訓練   :      des7, after des6, 30d
+AI Agent訓練   :      des7, after des6, 25d
 功能開發、維護   :         des8, after des6, 30d
 系統整合、測試   :         des9, after des7 des8, 7d
 使用者測試、回饋   :       des10, after des9, 7d
@@ -50,9 +50,9 @@ graph TD
               結束：第38天"]
     T5 --> T6
 
-    T6 --> T7["7 AI Agent訓練 (30)
+    T6 --> T7["7 AI Agent訓練 (25)
               開始：第39天
-              結束：第68天"]
+              結束：第63天"]
     T6 --> T8["8 功能開發、維護 (30)
               開始：第39天
               結束：第68天"]
@@ -66,3 +66,5 @@ graph TD
                 開始：第76天
                 結束：第82天"]
 ```
+
+關鍵路徑：1 --> 2 --> 3 --> 5 --> 6 --> 8 --> 9 --> 10
