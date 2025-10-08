@@ -20,7 +20,7 @@ section A分項
 研擬計畫   :         des1, 2025-10-01,2025-10-10
 任務分配   :         des2, after des1, 2d
 需求分析   :         des3, after des2, 10d
-蒐集文獻、資料   :         des4, after des2, 7d
+蒐集文獻、資料   :         des4, after des2, 10d
 n8n需求樣板蒐集   :         des5, after des3, 2d
 AI Agent試做   :         des6, after des4 des5, 14d
 AI Agent訓練   :      des7, after des6, 30d
@@ -40,7 +40,7 @@ graph TD
               開始：第13天
               結束：第22天"]
 
-    T2 --> T4["4 蒐集文獻、資料 (7)
+    T2 --> T4["4 蒐集文獻、資料 (10)
               開始：第13天
               結束：第19天"]
 
