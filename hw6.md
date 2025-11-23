@@ -1,45 +1,101 @@
 # Group HomeWork_6
-
+# 初始模型設計
+![初始模型設計](Telegram行程.jpg)
 # 初始螢幕設計
+![初始螢幕設計](Telegram1.jpg)
+![初始螢幕設計](Telegram2.jpg)
+# 理想
+```mermaid
+graph LR
+    %% 定義樣式
+    classDef trigger fill:#ff6d5a,stroke:#333,stroke-width:2px,color:white;
+    classDef process fill:#5a91ff,stroke:#333,stroke-width:2px,color:white;
+    classDef ai fill:#9d6dff,stroke:#333,stroke-width:4px,color:white;
+    classDef tool fill:#00c853,stroke:#333,stroke-width:2px,color:white;
+    classDef output fill:#ffcc00,stroke:#333,stroke-width:2px,color:black;
 
+    %% --- 輸入層 (螢幕介面 1 & 2) ---
+    subgraph Input_Layer [輸入端：使用者與客戶介面]
+        TG_Trigger[("Telegram Trigger<br>(指揮中心)<br>Input: 指令/查詢")]:::trigger
+        GM_Trigger[("Gmail Trigger<br>(監控台)<br>Input: 客戶信件")]:::trigger
+    end
 
-# 系統資料架構與驗證規則 (Data Schema & Validation)
-定義 AI 行銷助理與物流系統互動時的資料型態與驗證邏輯
+    %% --- 處理層 ---
+    subgraph Process_Layer [核心處理：意圖識別與決策]
+        Classifier[["Text Classifier<br>(意圖分類)"]]:::process
+        Agent{{"AI Agent<br>(行銷助理大腦)<br>Model: Gemini"}}:::ai
+        
+        %% 模擬資料庫讀取
+        DB_Sim[("模擬 DB<br>讀取: 客戶資料表<br>Check: Stock/VIP")]:::process
+    end
 
-## 1. 產品資料 (Products)
-*用於 AI 判斷是否進行促銷或庫存預警*
+    %% --- 輸出/工具層 (螢幕介面 3 & 匯出檔案) ---
+    subgraph Output_Layer [執行端：匯出檔案與結果]
+        Cal_Tool["Google Calendar Tool<br>(建立排程)"]:::tool
+        Mail_Tool["Gmail Send Tool<br>(建立草稿)"]:::tool
+        TG_Reply["Telegram Reply<br>(回報結果)"]:::tool
+        
+        %% 匯出物件與欄位
+        Out_Event[/"匯出: 行銷活動<br>Fields: Title, StartTime,<br>Location, Description"/]:::output
+        Out_Draft[/"匯出: 行銷郵件<br>Fields: To, Subject,<br>Body, Attachment"/]:::output
+        Out_Log[/"匯出: 執行報告<br>Fields: Status, Msg"/]:::output
+    end
 
-| 欄位名稱 (Field) | 資料型態 (Data Type) | 必填 (Required) | 驗證規則 (Validation Rules) | 說明 (Description) |
+    %% --- 連線關係 ---
+    TG_Trigger --> Classifier
+    GM_Trigger --> Classifier
+    Classifier -- "意圖: 行銷/查詢" --> Agent
+    
+    Agent -.-> DB_Sim
+    DB_Sim -.-> Agent
+    
+    Agent -- "Tool: Schedule" --> Cal_Tool
+    Agent -- "Tool: Draft Email" --> Mail_Tool
+    Agent -- "Final Answer" --> TG_Reply
+    
+    Cal_Tool --> Out_Event
+    Mail_Tool --> Out_Draft
+    TG_Reply --> Out_Log
+```
+
+# AI Agent 資料型態 & 驗證規則
+
+本文件定義 AI 行銷助理在處理輸入資料（來自 Telegram 指令或 Gmail 觸發）與後端物流系統互動時的資料規格。
+
+## 1. 會員/客戶資料 (Member / Customer)
+*用途：用於 n8n Gmail Node 發送行銷信件與 Google Contacts 聯絡人同步*
+
+| 欄位名稱 (Field) | 資料型態 (Type) | 必填 | 驗證規則 (Validation Rules) | 說明 (Description) |
 | :--- | :--- | :---: | :--- | :--- |
-| `product_id` | String (PK) | ✅ | Regex: `^P[0-9]{5}$` <br> (範例: P00001) | 唯一產品編號 |
-| `product_name` | String | ✅ | Length: 2-100 chars | 產品名稱 |
-| `category` | Enum | ✅ | [食品, 電子, 日用品, 冷凍] | 產品類別，用於行銷分眾 |
-| `unit_price` | Decimal(10,2) | ✅ | Value > 0 | 單價 (新台幣) |
-| `stock_qty` | Integer | ✅ | Value >= 0 | 當前庫存量 |
-| `last_restock` | Date | ❌ | Format: YYYY-MM-DD | 最後進貨日 |
+| `customer_id` | String (PK) | ✅ | Regex: `^C\d{5}$` <br> (例: C00123) | 系統唯一識別碼 |
+| `name` | String | ✅ | Length: 2-50 chars | 客戶名稱或公司行號 |
+| `email` | String | ✅ | Regex: `^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$` | **[關鍵]** 行銷信件發送目標 |
+| `phone` | String | ❌ | Regex: `^09\d{8}$` | 手機號碼，用於簡訊通知 |
+| `purchase_tier` | Enum | ✅ | [`General`, `VIP`, `Wholesale`] | 客戶分級，影響 AI 推薦策略 |
 
-## 2. 客戶資料 (Customers)
-*用於 AI 透過 Gmail 發送行銷資訊*
+## 2. 產品庫存資料 (Product Inventory)
+*用途：AI Agent 查詢庫存量 (`stock_qty`) 以判斷是否可進行促銷推廣*
 
-| 欄位名稱 (Field) | 資料型態 (Data Type) | 必填 (Required) | 驗證規則 (Validation Rules) | 說明 (Description) |
+| 欄位名稱 (Field) | 資料型態 (Type) | 必填 | 驗證規則 (Validation Rules) | 說明 (Description) |
 | :--- | :--- | :---: | :--- | :--- |
-| `customer_id` | String (PK) | ✅ | Regex: `^C[0-9]{5}$` | 唯一客戶編號 |
-| `company_name` | String | ✅ | Length: > 2 chars | 客戶公司或聯絡人名稱 |
-| `email` | String | ✅ | Regex: `^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$` | 聯絡信箱 (Gmail Trigger 用) |
-| `phone` | String | ❌ | Regex: `^09\d{8}$` or `^0\d{1,2}-\d{6,8}$` | 聯絡電話 |
-| `status` | Enum | ✅ | [Active, Inactive, VIP] | 客戶等級，VIP 優先行銷 |
+| `product_id` | String (PK) | ✅ | Regex: `^P\d{5}$` <br> (例: P00501) | 產品編號 |
+| `product_name` | String | ✅ | NOT NULL | 產品名稱 |
+| `unit_price` | Decimal | ✅ | Min: 0 | 單價 |
+| `stock_qty` | Integer | ✅ | Min: 0 | **[關鍵]** 目前庫存量，AI 需檢核此值 > 安全庫存 |
+| `category` | String | ✅ | [`Frozen`, `Dry`, `Fresh`] | 物流分類，用於行銷分類 |
 
-## 3. 行銷活動排程 (Campaigns)
-*對應 n8n 中的 Google Calendar 工具*
+## 3. 行銷活動排程 (Marketing Campaign)
+*用途：對應 n8n Google Calendar Tool 建立的活動物件*
 
-| 欄位名稱 (Field) | 資料型態 (Data Type) | 必填 (Required) | 驗證規則 (Validation Rules) | 說明 (Description) |
+| 欄位名稱 (Field) | 資料型態 (Type) | 必填 | 驗證規則 (Validation Rules) | 說明 (Description) |
 | :--- | :--- | :---: | :--- | :--- |
-| `campaign_id` | Integer (PK) | ✅ | Auto Increment | 活動編號 |
-| `campaign_name` | String | ✅ | Length: 5-50 chars | 行銷活動主題 |
-| `start_time` | DateTime | ✅ | `start_time` > Current Time | 活動開始時間 |
-| `end_time` | DateTime | ✅ | `end_time` > `start_time` | 活動結束時間 |
-| `target_product`| String (FK) | ✅ | 必須存在於 `Products` 表中 | 促銷主打商品 |
+| `campaign_title` | String | ✅ | Format: `[行銷] {Subject}` | 行事曆標題格式 |
+| `start_datetime` | ISO8601 | ✅ | > `Current_Timestamp` | 活動開始時間 |
+| `end_datetime` | ISO8601 | ✅ | > `start_datetime` | 活動結束時間 |
+| `attendees` | List<String> | ❌ | Valid Email Format | 參與行銷會議的人員 Email |
+| `description` | Text | ❌ | Max Length: 500 | AI 生成的活動摘要 |
 
 ---
-**驗證邏輯實作筆記 (For n8n Code Node):**
-> 在 n8n 的 "Text Classifier" 之後，若意圖為 `create_campaign`，必須檢查 `stock_qty` 是否大於安全庫存量 (e.g., > 50)，否則 AI 應回傳「庫存不足，建議先建立進貨單」。
+### 資料流驗證邏輯 (Data Flow Logic)
+1. **Text Classifier 驗證：** 當使用者輸入自然語言（如：「幫我查 P001 還有沒有貨」），系統需透過 Regex 提取 `P001` 並比對 `product_id` 格式。
+2. **庫存檢查規則：** 若 `stock_qty` < 50，AI Agent 禁止發送促銷 Email，並回傳「庫存不足警告」。
