@@ -26,7 +26,7 @@ graph LR
         Agent{{"AI Agent<br>(行銷助理大腦)<br>Model: Gemini"}}:::ai
         
         %% 模擬資料庫讀取
-        DB_Sim[("模擬 DB<br>讀取: 客戶資料表<br>Check: Stock/VIP")]:::process
+        DB_Sim[("模擬 DB<br>讀取: 客戶資料表<br>Check: Member/VIP")]:::process
     end
 
     %% --- 輸出/工具層 (螢幕介面 3 & 匯出檔案) ---
@@ -60,7 +60,7 @@ graph LR
 
 # AI Agent 資料型態 & 驗證規則
 
-本文件定義 AI 行銷助理在處理輸入資料（來自 Telegram 指令或 Gmail 觸發）與後端物流系統互動時的資料規格。
+定義 AI 行銷助理在處理輸入資料（來自 Telegram 指令或 Gmail 觸發）與後端系統互動時的資料規格。
 
 ## 1. 會員/客戶資料 (Member / Customer)
 *用途：用於 n8n Gmail Node 發送行銷信件與 Google Contacts 聯絡人同步*
@@ -73,18 +73,7 @@ graph LR
 | `phone` | String | ❌ | Regex: `^09\d{8}$` | 手機號碼，用於簡訊通知 |
 | `purchase_tier` | Enum | ✅ | [`General`, `VIP`, `Wholesale`] | 客戶分級，影響 AI 推薦策略 |
 
-## 2. 產品庫存資料 (Product Inventory)
-*用途：AI Agent 查詢庫存量 (`stock_qty`) 以判斷是否可進行促銷推廣*
-
-| 欄位名稱 (Field) | 資料型態 (Type) | 必填 | 驗證規則 (Validation Rules) | 說明 (Description) |
-| :--- | :--- | :---: | :--- | :--- |
-| `product_id` | String (PK) | ✅ | Regex: `^P\d{5}$` <br> (例: P00501) | 產品編號 |
-| `product_name` | String | ✅ | NOT NULL | 產品名稱 |
-| `unit_price` | Decimal | ✅ | Min: 0 | 單價 |
-| `stock_qty` | Integer | ✅ | Min: 0 | **[關鍵]** 目前庫存量，AI 需檢核此值 > 安全庫存 |
-| `category` | String | ✅ | [`Frozen`, `Dry`, `Fresh`] | 物流分類，用於行銷分類 |
-
-## 3. 行銷活動排程 (Marketing Campaign)
+## 2. 行銷活動排程 (Marketing Campaign)
 *用途：對應 n8n Google Calendar Tool 建立的活動物件*
 
 | 欄位名稱 (Field) | 資料型態 (Type) | 必填 | 驗證規則 (Validation Rules) | 說明 (Description) |
@@ -96,6 +85,3 @@ graph LR
 | `description` | Text | ❌ | Max Length: 500 | AI 生成的活動摘要 |
 
 ---
-### 資料流驗證邏輯 (Data Flow Logic)
-1. **Text Classifier 驗證：** 當使用者輸入自然語言（如：「幫我查 P001 還有沒有貨」），系統需透過 Regex 提取 `P001` 並比對 `product_id` 格式。
-2. **庫存檢查規則：** 若 `stock_qty` < 50，AI Agent 禁止發送促銷 Email，並回傳「庫存不足警告」。
