@@ -70,7 +70,7 @@ erDiagram
     %% 關聯線定義
     USERS ||--o{ REQUESTS : "提交 (1:N)"
     AGENTS ||--o{ REQUESTS : "處理 (1:N)"
-    REQUESTS ||--|| REPORTS : "產出 (1:1)"
+    AGENTS ||--|| REPORTS : "產出 (1:1)"
     
     AGENTS ||--o{ AGENT_TOOL_MAPPING : "配置"
     TOOLS ||--o{ AGENT_TOOL_MAPPING : "被使用"
