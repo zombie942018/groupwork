@@ -1,7 +1,9 @@
 # Group HomeWork_6
-# 初始模型設計
-![初始模型設計](Telegram行程.jpg)
-# 初始螢幕設計
+# 初始套件設計
+![Telegram行程](Telegram行程.jpg)
+![今日摘要](今日摘要.jpg)
+![語音輸入排定行程](語音輸入排定行程.jpg)
+# 使用畫面
 ![初始螢幕設計](Telegram1.jpg)
 ![初始螢幕設計](Telegram2.jpg)
 # 理想
